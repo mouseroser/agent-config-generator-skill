@@ -98,8 +98,8 @@ bash reorganize-agent-content.sh all
 ## 安装
 
 ```bash
-git clone https://github.com/win4r/agent-config-generator.git
-openclaw plugins install --link ./agent-config-generator
+git clone https://github.com/mouseroser/agent-config-generator-skill.git
+openclaw plugins install --link ./agent-config-generator-skill
 ```
 
 ---

@@ -1,32 +1,121 @@
 ---
 name: agent-config-generator
-description: 为 OpenClaw agent 生成或更新配置文件，按当前架构保持文件语义固定、文件数量可增长。适用于新 agent 创建、现有 agent 配置收口、流水线调整后的批量更新，以及 root / sub-agent 的 SOUL、IDENTITY、HEARTBEAT、AGENTS、TOOLS、MEMORY 骨架修正；当 sub-agent 需要服务对象信息时，默认写入 AGENTS.md 的“服务对象”段，而不是机械恢复独立 USER.md。 
+description: 为 OpenClaw agent 生成或更新配置文件。按当前架构保持文件语义固定、数量可增长。适用于新 agent 创建、现有 agent 配置收口、流水线调整后的批量更新，以及 root / sub-agent 的 SOUL、IDENTITY、HEARTBEAT、AGENTS、TOOLS、MEMORY 骨架修正。当用户说"新建 agent"、"创建 agent"、"生成 agent 配置"等关键词时自动触发。
 ---
 
 # Agent Config Generator
 
 为 OpenClaw agent 生成或更新配置文件。
 
-## 当前口径
+## 两种工作模式
 
-不是“默认三件套永远够用”，而是：
-- **文件语义固定**
-- **文件数量可增长**
-- agent 可从最小骨架启动，但应随真实使用自然长出更多文件
+### 模式 1：生成模式（新建 agent）
 
-当前文件职责：
+**生成内容（最小骨架）**：
+- `IDENTITY.md` — 名片
+- `SOUL.md` — 人格与边界
+- `AGENTS.md` — 执行手册
+
+**不生成**（等需要时再创建）：
+- `TOOLS.md` / `MEMORY.md` / `HEARTBEAT.md` / `memory/`
+
+**执行脚本**：
+```bash
+bash ~/.openclaw/skills/agent-config-generator/scripts/generate-agent-config.sh <agent-name> [role] [model]
+```
+
+### 模式 2：重组模式（优化已有 agent）
+
+**执行内容**：
+1. 读取所有 agent 配置文件
+2. 按主语边界判断内容归属
+3. 移动内容到正确文件
+4. 保留所有内容，不删除
+
+**主语边界**：
+| 内容主语 | 目标文件 |
+|---------|---------|
+| 我是谁 | IDENTITY.md |
+| 我怎么判断和行动 | SOUL.md |
+| 我这类任务通常怎么跑 | AGENTS.md |
+| 这套工具有什么坑 | TOOLS.md |
+| 我们学到了什么 | MEMORY.md |
+
+**执行脚本**：
+```bash
+# 重组所有 agent
+bash ~/.openclaw/skills/agent-config-generator/scripts/reorganize-agent-content.sh all
+
+# 重组指定 agent
+bash ~/.openclaw/skills/agent-config-generator/scripts/reorganize-agent-content.sh <agent-name>
+```
+
+## 定位
+
+## 自动触发
+
+当用户输入以下关键词时，OpenClaw 会自动调用本 skill：
+
+**触发关键词**：
+- "新建 agent"
+- "创建 agent"
+- "生成 agent 配置"
+- "创建新的 agent"
+- "帮我创建一个 agent"
+
+**触发后行为**：
+1. 读取本 SKILL.md
+2. 询问用户：agent 名称、角色、模型
+3. 调用 `generate-agent-config.sh` 生成最小骨架
+4. 验证生成结果
+
+
+**独立工作为主，联动 architecture-generator 为辅。**
+
+- agent-config-generator 可以独立工作，不需要依赖 architecture-generator
+- architecture-generator 验证/优化 workspace 时，会读取 agent 配置但不修改
+- 两个 skill 通过 `shared-context/AGENT-FILE-ARCHITECTURE.md` 共享架构口径
+
+## 与 architecture-generator 的联动
+
+**职责边界**:
+- **architecture-generator**: 结构优化（补全文件、修复位置）
+- **agent-config-generator**: 内容优化（生成配置、重组内容）
+
+**工作流**:
+```
+# 新建 agent（直接调用脚本）
+bash generate-agent-config.sh <agent-name> [role] [model]
+
+# 内容重组
+bash reorganize-agent-content.sh all
+
+# 或通过 architecture-generator 联动调用
+bash optimize-workspace.sh
+  → 提示：是否重组内容？
+  → 用户确认后调用 reorganize-agent-content.sh
+```
+
+## 核心原则
+
+### 文件语义固定
 - `IDENTITY.md`：名片
 - `SOUL.md`：人格与边界
-- `AGENTS.md`：执行手册（sub-agent 默认也承载"服务对象"段）
-- `HEARTBEAT.md`：值班清单
+- `AGENTS.md`：执行手册
 - `TOOLS.md`：环境坑位
 - `MEMORY.md`：长期伤疤与护栏
-- `memory/YYYY-MM-DD.md`：当天账本与晋升池
 
-跨 agent 共享文档：
-- `shared-context/THESIS.md`：当前世界观
-- `shared-context/FEEDBACK-LOG.md`：跨 agent 纠偏账本
-- `shared-context/SIGNALS.md`：外部信号池
+### 主语边界判断
+- 我是谁 → `IDENTITY.md`
+- 我怎么判断和行动 → `SOUL.md`
+- 我这类任务通常怎么跑 → `AGENTS.md`
+- 这套工具有什么坑 → `TOOLS.md`
+- 我们学到了什么 → `MEMORY.md`
+
+### 允许增长，不做 blanket trimming
+- 不把 sub-agent 永久锁死在三件套
+- 不因为"看起来重复"就删文件
+- 只做主语纠偏、内容瘦身、结构整理
 
 ## Required Read
 
@@ -37,65 +126,9 @@ description: 为 OpenClaw agent 生成或更新配置文件，按当前架构保
 4. `~/.openclaw/workspace/AGENTS.md`
 5. 最新流水线 skill / contract（如果是流水线调整触发）
 
-## 生成 / 更新原则
+## 脚本清单
 
-### 1. 先判主语，再改文件
-只回答这段内容属于谁：
-- 我是谁 → `IDENTITY.md`
-- 我怎么判断和行动 → `SOUL.md`
-- 我在帮谁 → `AGENTS.md` 的"服务对象"段（sub-agent）或 `USER.md`（main）
-- 我这类任务通常怎么跑 → `AGENTS.md`
-- 这套工具有什么坑 → `TOOLS.md`
-- 我们学到了什么 → `MEMORY.md`
-
-### 2. 允许增长，不做 blanket trimming
-- 不把 sub-agent 永久锁死在三件套
-- 不因为“看起来重复”就删文件
-- 只做主语纠偏、内容瘦身、结构整理
-
-### 3. MEMORY.md 统一骨架
-main 与 sub-agent 的 `MEMORY.md` 统一骨架：
-1. 血泪教训
-2. 错误示范 / 反模式
-3. 长期稳定规则
-4. 长期偏好（可选）
-
-写入门槛：至少满足以下 3 条才进 MEMORY.md：
-- 高代价
-- 可复发
-- 已验证
-- 长期有效
-- 不写进去以后大概率还会再犯
-
-### 4. 服务对象信息默认在 AGENTS.md
-- sub-agent 默认把服务对象信息写入 `AGENTS.md` 的"服务对象"段
-- 只有长期确有必要时才恢复独立 `USER.md`
-- main 保留独立 `USER.md`
-
-### 5. BOOTSTRAP.md 只是启动引导
-- 只保留“先读哪些文件”的引导
-- 不重复 IDENTITY / SOUL / AGENTS 的正文
-
-## 批量更新时必须同步的架构结论
-
-如果变更来源是 2026-03-28 之后的最终架构口径，必须体现：
-- main 是人类协作入口 + 主会话编排
-- control-plane 是控制面宿主
-- routine heartbeat / cron 不再由 main 承担
-- `DAILY-INTEL.md` 是全局情报池
-- `intel/media-ops/DAILY-SIGNAL-BRIEF.md` 是自媒体信号筛选层
-- sub-agent 文件可增长，但必须主语清晰
-
-## 输出要求
-
-更新 agent 配置时：
-1. 不追求所有 agent 文件数量一致
-2. 只追求同类文件语义一致
-3. 若发现内容主语错位，移动到正确文件；不要直接删除有效知识
-4. 若文件内容只是模板噪音，可瘦身，但必须保留未来增长空间
-
-## Notes
-
-- 若是 root / sub-agent 的批量收口，优先更新 references，而不是在 SKILL.md 里堆版本历史
-- 若要动 `MEMORY.md`，先确认写入内容满足长期记忆门槛
-- 若要动 `AGENTS.md`，优先保留稳定 workflow，不要把 contract 全部挪回 spawn prompt
+| 脚本 | 功能 |
+|------|------|
+| `generate-agent-config.sh` | 生成新 agent 最小骨架 |
+| `reorganize-agent-content.sh` | 按主语边界重组已有 agent 内容 |

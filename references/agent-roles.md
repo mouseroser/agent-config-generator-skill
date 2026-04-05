@@ -37,9 +37,9 @@
 
 ---
 
-## 星链 / 通用协作 agents
+## Agent 角色示例
 
-### main（小光）
+### main
 - **角色**: 顶层编排中心
 - **定位**: 主会话里的总调度者与可靠通知 owner
 - **核心职责**:
@@ -51,10 +51,11 @@
   - 不直接编辑应用代码
   - 不替代专职 agent 干其本职工作
 - **Emoji**: 🧪
-- **Chat ID**: DM
 - **Workspace**: `~/.openclaw/workspace/`
 
-### coding
+### 协作型 agent 示例
+
+#### coding
 - **角色**: 代码实现者
 - **定位**: 把需求变成代码
 - **核心职责**:
@@ -65,10 +66,9 @@
   - 不做最终审查
   - 不做需求拍板
 - **Emoji**: ⚙️
-- **Chat ID**: `-5039283416`
 - **Workspace**: `~/.openclaw/workspace/agents/coding/`
 
-### review
+#### review
 - **角色**: 审查执行者
 - **定位**: 质量门与问题识别者
 - **核心职责**:
@@ -79,10 +79,9 @@
   - 不编排其他 agent
   - 不代替 coding 实现需求
 - **Emoji**: 🔍
-- **Chat ID**: `-5242448266`
 - **Workspace**: `~/.openclaw/workspace/agents/review/`
 
-### test
+#### test
 - **角色**: 测试执行者
 - **定位**: 验证功能是否真的可用
 - **核心职责**:
@@ -93,10 +92,11 @@
   - 不代替 review 做审查结论
   - 不代替 main 做交付判断
 - **Emoji**: 🧪
-- **Chat ID**: `-5245840611`
 - **Workspace**: `~/.openclaw/workspace/agents/test/`
 
-### gemini（织梦）
+### 研究型 agent 示例
+
+#### research
 - **角色**: 快速扫描者与一致性复核者
 - **定位**: 快速扫全局、抓不一致
 - **核心职责**:
@@ -107,10 +107,9 @@
   - 不做最终拍板
   - 不承担主链路可靠通知
 - **Emoji**: ✨
-- **Chat ID**: `-5264626153`
-- **Workspace**: `~/.openclaw/workspace/agents/gemini/`
+- **Workspace**: `~/.openclaw/workspace/agents/research/`
 
-### notebooklm（珊瑚）
+#### knowledge
 - **角色**: 深度研究员与证据提供者
 - **定位**: 补研究、补证据、补背景
 - **核心职责**:
@@ -121,10 +120,9 @@
   - 不直接承担正式发布
   - 不替代 main 做编排
 - **Emoji**: 📚
-- **Chat ID**: `-5202217379`
-- **Workspace**: `~/.openclaw/workspace/agents/notebooklm/`
+- **Workspace**: `~/.openclaw/workspace/agents/knowledge/`
 
-### brainstorming（灵感熔炉）
+#### brainstorming
 - **角色**: 根因分析者与方案设计师
 - **定位**: 把模糊问题打磨成可执行方案
 - **核心职责**:
@@ -135,10 +133,11 @@
   - 不直接提交最终交付
   - 不替代 coding 写实现
 - **Emoji**: 💡
-- **Chat ID**: `-5231604684`
 - **Workspace**: `~/.openclaw/workspace/agents/brainstorming/`
 
-### docs
+### 文档型 agent 示例
+
+#### docs
 - **角色**: 文档交付者
 - **定位**: 把结果整理成可读交付物
 - **核心职责**:
@@ -148,10 +147,11 @@
   - 不做主链编排
   - 不做最终审批
 - **Emoji**: 📝
-- **Chat ID**: `-5095976145`
 - **Workspace**: `~/.openclaw/workspace/agents/docs/`
 
-### monitor-bot
+### 监控型 agent 示例
+
+#### monitor
 - **角色**: 系统守望者
 - **定位**: 监控群承接者
 - **核心职责**:
@@ -161,65 +161,24 @@
 - **不做**:
   - 不替代 main 判断任务走向
 - **Emoji**: 🚨
-- **Chat ID**: `-5131273722`
-- **Workspace**: `~/.openclaw/workspace/agents/monitor-bot/`
+- **Workspace**: `~/.openclaw/workspace/agents/monitor/`
 
-### claude（小克）
-- **角色**: 主方案设计者
-- **定位**: 做深思考、做主方案
+### 编排型 agent 示例
+
+#### orchestrator
+- **角色**: 流水线协调引擎
+- **定位**: 承接 main 下发的任务，编排多个 agent 协作
 - **核心职责**:
-  - 计划设计
-  - 主审查
-  - 独立复核
+  - 按步骤 spawn 各职能 agent
+  - 每步交接前 synthesize，不把原始输出原样传下去
+  - 方向走偏 / 超重试 / 有实质分歧无法自裁 → escalate main
+  - 完成后 sessions_send 回 main
 - **不做**:
-  - 不替代 main 做最终路由
-- **Emoji**: 🏗️
-- **Chat ID**: `-5101947063`
-- **Workspace**: `~/.openclaw/workspace/agents/claude/`
-
-### openai（小曼）
-- **角色**: 宪法制定者与仲裁者
-- **定位**: 定规则、做仲裁
-- **核心职责**:
-  - 宪法边界
-  - 分歧仲裁
-  - 高风险判断
-- **不做**:
-  - 不替代 main 做主链编排
-- **Emoji**: ⚖️
-- **Chat ID**: `-5242027093`
-- **Workspace**: `~/.openclaw/workspace/agents/openai/`
-
----
-
-## 自媒体 agents
-
-### wemedia
-- **角色**: 内容创作与发布协调者
-- **定位**: 自媒体链路 owner
-- **核心职责**:
-  - 内容创作
-  - 平台适配
-  - 晨星确认后执行正式发布
-- **不做**:
-  - 不越过晨星确认门控
-  - 不让 main 手工 browser 顶替正式发布链路
-- **Emoji**: 📱
-- **Chat ID**: `-5146160953`
-- **Workspace**: `~/.openclaw/workspace/agents/wemedia/`
-
-### nanobanana
-- **角色**: 视觉创作者
-- **定位**: 配图 / 视觉素材生成者
-- **核心职责**:
-  - 生成视觉素材
-  - 为内容提供配图支持
-- **不做**:
-  - 不直接做发布
-  - 不替代内容创作结论
-- **Emoji**: 🎨
-- **Chat ID**: `-5217509070`
-- **Workspace**: `~/.openclaw/workspace/agents/nanobanana/`
+  - 不做最终交付判断（交付由 main 确认）
+  - 不代替专职 agent 完成本职工作
+  - 不越过 main 直接联系服务对象
+- **Emoji**: 🌟
+- **Workspace**: `~/.openclaw/workspace/agents/orchestrator/`
 
 ---
 
@@ -237,5 +196,5 @@
 
 ---
 
-**最后更新**: 2026-03-28
-**维护者**: main（小光）
+**最后更新**: 2026-04-05
+**维护者**: architecture-generator
